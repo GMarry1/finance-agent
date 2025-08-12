@@ -1,0 +1,276 @@
+'use client';
+
+import React, { useState, useRef, useEffect } from 'react';
+import { MessageCircle, Plus, Send, Bot, User, Trash2, RefreshCw, Paperclip, FileText, X, Upload, Edit2, Check, X as XIcon, ChevronLeft, ChevronRight, Receipt, Database, Download, BarChart3, FileText as FileTextIcon, Calculator, CreditCard, GripVertical, Zap } from 'lucide-react';
+import { cn } from '@/lib/utils';
+
+interface Attachment {
+  id: string;
+  name: string;
+  type: string;
+  size: number;
+  url?: string;
+  content?: string;
+}
+
+interface Message {
+  id: string;
+  content: string;
+  role: 'user' | 'assistant';
+  timestamp: Date;
+  attachments?: Attachment[];
+}
+
+interface ChatSession {
+  id: string;
+  title: string;
+  messages: Message[];
+  createdAt: Date;
+}
+
+const recommendedActions = [
+];
+
+const modules = [
+];
+
+export default function FinanceAIChat() {
+  const [sessions, setSessions] = useState<ChatSession[]>([]);
+  const [currentSession, setCurrentSession] = useState<ChatSession | null>(null);
+  const [inputMessage, setInputMessage] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const [attachments, setAttachments] = useState<Attachment[]>([]);
+  const [editingSessionId, setEditingSessionId] = useState<string | null>(null);
+  const [editingTitle, setEditingTitle] = useState('');
+  const [leftSidebarCollapsed, setLeftSidebarCollapsed] = useState(false);
+  const [rightSidebarCollapsed, setRightSidebarCollapsed] = useState(false);
+  const [rightSidebarWidth, setRightSidebarWidth] = useState(280);
+  const [isResizing, setIsResizing] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const titleInputRef = useRef<HTMLInputElement>(null);
+
+  const createNewSession = () => {
+    const newSession: ChatSession = {
+      id: Date.now().toString(),
+      title: `新对话 ${sessions.length + 1}`,
+      messages: [],
+      createdAt: new Date()
+    };
+    setSessions([newSession, ...sessions]);
+    setCurrentSession(newSession);
+    setAttachments([]);
+  };
+
+  const deleteSession = (sessionId: string) => {
+    setSessions(sessions.filter(s => s.id !== sessionId));
+    if (currentSession?.id === sessionId) {
+      setCurrentSession(sessions.length > 1 ? sessions[1] : null);
+    }
+  };
+
+  const startEditingTitle = (session: ChatSession) => {
+    setEditingSessionId(session.id);
+    setEditingTitle(session.title);
+    setTimeout(() => {
+      titleInputRef.current?.focus();
+      titleInputRef.current?.select();
+    }, 100);
+  };
+
+  const saveTitle = () => {
+    if (!editingSessionId || !editingTitle.trim()) return;
+    
+    const updatedSessions = sessions.map(session => 
+      session.id === editingSessionId 
+        ? { ...session, title: editingTitle.trim() }
+        : session
+    );
+    
+    setSessions(updatedSessions);
+    
+    if (currentSession?.id === editingSessionId) {
+      setCurrentSession({ ...currentSession, title: editingTitle.trim() });
+    }
+    
+    setEditingSessionId(null);
+    setEditingTitle('');
+  };
+
+  const cancelEditing = () => {
+    setEditingSessionId(null);
+    setEditingTitle('');
+  };
+
+  const handleTitleKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      saveTitle();
+    } else if (e.key === 'Escape') {
+      cancelEditing();
+    }
+  };
+
+  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const files = event.target.files;
+    if (!files) return;
+
+    Array.from(files).forEach(file => {
+      const attachment: Attachment = {
+        id: Date.now().toString() + Math.random(),
+        name: file.name,
+        type: file.type,
+        size: file.size,
+        url: URL.createObjectURL(file)
+      };
+      setAttachments(prev => [...prev, attachment]);
+    });
+
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
+
+  const removeAttachment = (attachmentId: string) => {
+    setAttachments(prev => prev.filter(att => att.id !== attachmentId));
+  };
+
+  const processVouchers = async (attachments: Attachment[]) => {
+    const processingResults = attachments.map(att => {
+      const voucherTypes = ['发票', '收据', '银行回单', '合同', '报销单'];
+      const randomType = voucherTypes[Math.floor(Math.random() * voucherTypes.length)];
+      const amounts = [1000, 2500, 5000, 8000, 12000, 15000];
+      const randomAmount = amounts[Math.floor(Math.random() * amounts.length)];
+      
+      return {
+        fileName: att.name,
+        type: randomType,
+        amount: randomAmount,
+        date: new Date().toLocaleDateString(),
+        status: '已识别'
+      };
+    });
+
+    return processingResults;
+  };
+
+  const sendMessage = async (content: string) => {
+    if ((!content.trim() && attachments.length === 0) || !currentSession) return;
+
+    const userMessage: Message = {
+      id: Date.now().toString(),
+      content: content || (attachments.length > 0 ? `上传了 ${attachments.length} 个凭证附件` : ''),
+      role: 'user',
+      timestamp: new Date(),
+      attachments: attachments.length > 0 ? [...attachments] : undefined
+    };
+
+    const updatedSession = {
+      ...currentSession,
+      messages: [...currentSession.messages, userMessage]
+    };
+
+    setSessions(sessions.map(s => s.id === currentSession.id ? updatedSession : s));
+    setCurrentSession(updatedSession);
+    setInputMessage('');
+    setIsLoading(true);
+
+    setTimeout(async () => {
+      let aiResponse = '';
+      
+      if (attachments.length > 0) {
+        const results = await processVouchers(attachments);
+        aiResponse = `✅ 凭证处理完成！\n\n已成功识别并录入以下凭证：\n\n${results.map(result => 
+          `📄 ${result.fileName}\n   - 类型：${result.type}\n   - 金额：¥${result.amount.toLocaleString()}\n   - 日期：${result.date}\n   - 状态：${result.status}\n`
+        ).join('\n')}\n\n所有凭证已自动录入财务系统，请核对信息是否正确。`;
+      } else {
+        const aiResponses = [
+          "根据您的问题，我建议从以下几个方面进行分析：首先，我们需要查看相关的财务数据；其次，进行市场环境分析；最后，制定相应的策略。",
+          "这是一个很好的财务问题。让我为您详细分析一下：1. 风险评估 2. 收益预测 3. 市场趋势 4. 建议方案。",
+          "基于您提供的信息，我的专业建议是：重点关注现金流管理，优化成本结构，并建立完善的风险控制体系。",
+          "从财务角度来说，这个项目需要考虑：投资回报率、风险系数、市场前景等因素。我建议进行更深入的分析。",
+          "关于税务筹划，我建议：1. 合理利用税收优惠政策 2. 优化企业结构 3. 合规经营 4. 定期咨询专业税务师。"
+        ];
+        aiResponse = aiResponses[Math.floor(Math.random() * aiResponses.length)];
+      }
+      
+      const aiMessage: Message = {
+        id: (Date.now() + 1).toString(),
+        content: aiResponse,
+        role: 'assistant',
+        timestamp: new Date()
+      };
+
+      const finalSession = {
+        ...updatedSession,
+        messages: [...updatedSession.messages, aiMessage]
+      };
+
+      setSessions(sessions.map(s => s.id === currentSession.id ? finalSession : s));
+      setCurrentSession(finalSession);
+      setIsLoading(false);
+      setAttachments([]);
+    }, 2000);
+  };
+
+  const handleRecommendedAction = (prompt: string) => {
+    sendMessage(prompt);
+  };
+
+  const formatFileSize = (bytes: number) => {
+    if (bytes === 0) return '0 Bytes';
+    const k = 1024;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+  };
+
+  const handleMouseDown = (e: React.MouseEvent) => {
+    setIsResizing(true);
+    e.preventDefault();
+  };
+
+  const handleMouseMove = (e: MouseEvent) => {
+    if (!isResizing) return;
+    
+    const newWidth = window.innerWidth - e.clientX;
+    if (newWidth > 200 && newWidth < 500) {
+      setRightSidebarWidth(newWidth);
+    }
+  };
+
+  const handleMouseUp = () => {
+    setIsResizing(false);
+  };
+
+  useEffect(() => {
+    if (isResizing) {
+      document.addEventListener('mousemove', handleMouseMove);
+      document.addEventListener('mouseup', handleMouseUp);
+      return () => {
+        document.removeEventListener('mousemove', handleMouseMove);
+        document.removeEventListener('mouseup', handleMouseUp);
+      };
+    }
+  }, [isResizing]);
+
+  return (
+    <div className="flex h-screen bg-gray-50">
+                          className="text-gray-400 hover:text-blue-600 transition-colors opacity-0 group-hover:opacity-100 p-1"
+                          title="编辑标题"
+                        >
+                          <Edit2 className="w-3 h-3" />
+                        </button>
+                      </div>
+                    )}
+                    <p className="text-xs text-gray-500 mt-1">
+                    className="text-gray-400 hover:text-red-500 transition-colors p-1"
+                    title="删除对话"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+        </div>
+
