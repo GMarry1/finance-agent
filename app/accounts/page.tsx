@@ -42,8 +42,9 @@ const mockAccounts: Account[] = [
   { id: '15', code: '1404', name: '材料成本差异', category: '流动资产', balance: 50000, type: 'asset', status: 'active', lastUpdated: '2024-12-01' },
 ];
 
-// Mock 时间轴数据
+// Mock 时间轴数据 - 按月份分布
 const mockTimeline: TimelineItem[] = [
+  // 2024年12月
   {
     id: '1',
     date: '2024-12-01',
@@ -54,7 +55,7 @@ const mockTimeline: TimelineItem[] = [
   },
   {
     id: '2',
-    date: '2024-11-30',
+    date: '2024-12-15',
     title: '银行存款调整',
     description: '银行对账单调整，银行存款余额增加5,000元',
     type: 'adjustment',
@@ -62,12 +63,13 @@ const mockTimeline: TimelineItem[] = [
   },
   {
     id: '3',
-    date: '2024-11-28',
+    date: '2024-12-20',
     title: '应收账款收回',
     description: '客户A公司支付应收账款200,000元',
     type: 'transaction',
     amount: 200000
   },
+  // 2024年11月
   {
     id: '4',
     date: '2024-11-25',
@@ -107,6 +109,64 @@ const mockTimeline: TimelineItem[] = [
     description: '发放员工工资及社保费用',
     type: 'transaction',
     amount: -80000
+  },
+  // 2024年10月
+  {
+    id: '9',
+    date: '2024-10-30',
+    title: '10月期末结账',
+    description: '完成10月份期末结账，更新所有科目余额',
+    type: 'balance',
+    amount: 0
+  },
+  {
+    id: '10',
+    date: '2024-10-25',
+    title: '设备采购',
+    description: '采购生产设备，价值300,000元',
+    type: 'transaction',
+    amount: 300000
+  },
+  {
+    id: '11',
+    date: '2024-10-20',
+    title: '销售收入',
+    description: '销售商品收入400,000元',
+    type: 'transaction',
+    amount: 400000
+  },
+  {
+    id: '12',
+    date: '2024-10-15',
+    title: '税费缴纳',
+    description: '缴纳增值税和企业所得税',
+    type: 'transaction',
+    amount: -120000
+  },
+  // 2024年9月
+  {
+    id: '13',
+    date: '2024-09-30',
+    title: '9月期末结账',
+    description: '完成9月份期末结账，更新所有科目余额',
+    type: 'balance',
+    amount: 0
+  },
+  {
+    id: '14',
+    date: '2024-09-25',
+    title: '投资理财',
+    description: '购买理财产品，投资金额200,000元',
+    type: 'transaction',
+    amount: 200000
+  },
+  {
+    id: '15',
+    date: '2024-09-20',
+    title: '销售收入',
+    description: '销售商品收入350,000元',
+    type: 'transaction',
+    amount: 350000
   }
 ];
 
@@ -122,24 +182,13 @@ export default function AccountsPage() {
   const categories = ['all', '流动资产', '非流动资产', '流动负债', '非流动负债', '所有者权益', '收入', '费用'];
   const types = ['all', 'asset', 'liability', 'equity', 'revenue', 'expense'];
 
-  // 生成月份选项（最近12个月）
-  const generateMonthOptions = () => {
-    const months = [];
-    const currentDate = new Date();
-    
-    for (let i = 0; i < 12; i++) {
-      const date = new Date(currentDate.getFullYear(), currentDate.getMonth() - i, 1);
-      const year = date.getFullYear();
-      const month = date.getMonth() + 1;
-      const monthKey = `${year}-${month.toString().padStart(2, '0')}`;
-      const monthLabel = `${year}年${month}月`;
-      months.push({ key: monthKey, label: monthLabel });
-    }
-    
-    return months;
+  // 获取时间轴中的唯一月份
+  const getMonthFromDate = (dateString: string) => {
+    const date = new Date(dateString);
+    return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
   };
 
-  const monthOptions = generateMonthOptions();
+  const timelineMonths = Array.from(new Set(timeline.map(item => getMonthFromDate(item.date)))).sort((a, b) => b.localeCompare(a));
 
   const filteredAccounts = accounts.filter(account => {
     const matchesSearch = account.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -147,23 +196,15 @@ export default function AccountsPage() {
     const matchesCategory = selectedCategory === 'all' || account.category === selectedCategory;
     const matchesType = selectedType === 'all' || account.type === selectedType;
     
-    // 按月筛选
-    if (selectedMonth !== 'all') {
-      const accountDate = new Date(account.lastUpdated);
-      const accountMonth = `${accountDate.getFullYear()}-${(accountDate.getMonth() + 1).toString().padStart(2, '0')}`;
-      if (accountMonth !== selectedMonth) return false;
-    }
+    // 按月筛选账目
+    const matchesMonth = selectedMonth === 'all' || getMonthFromDate(account.lastUpdated) === selectedMonth;
     
-    return matchesSearch && matchesCategory && matchesType;
+    return matchesSearch && matchesCategory && matchesType && matchesMonth;
   });
 
   const filteredTimeline = selectedMonth === 'all' 
     ? timeline 
-    : timeline.filter(item => {
-        const itemDate = new Date(item.date);
-        const itemMonth = `${itemDate.getFullYear()}-${(itemDate.getMonth() + 1).toString().padStart(2, '0')}`;
-        return itemMonth === selectedMonth;
-      });
+    : timeline.filter(item => getMonthFromDate(item.date) === selectedMonth);
 
   const getTypeColor = (type: string) => {
     switch (type) {
@@ -212,6 +253,11 @@ export default function AccountsPage() {
       month: 'long', 
       day: 'numeric' 
     });
+  };
+
+  const formatMonth = (monthString: string) => {
+    const [year, month] = monthString.split('-');
+    return `${year}年${month}月`;
   };
 
   const totalBalance = filteredAccounts.reduce((sum, account) => sum + account.balance, 0);
@@ -365,9 +411,9 @@ export default function AccountsPage() {
                     className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   >
                     <option value="all">全部月份</option>
-                    {monthOptions.map(month => (
-                      <option key={month.key} value={month.key}>
-                        {month.label}
+                    {timelineMonths.map(month => (
+                      <option key={month} value={month}>
+                        {formatMonth(month)}
                       </option>
                     ))}
                   </select>
