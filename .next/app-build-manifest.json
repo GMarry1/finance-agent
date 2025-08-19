@@ -15,22 +15,6 @@
       "static/css/7d7beb899c485fe0.css",
       "static/chunks/app/layout-0e1989b7439eccbc.js"
     ],
-    "/invoices/page": [
-      "static/chunks/webpack-911021f1e06ba075.js",
-      "static/chunks/fd9d1056-a95c00c251bf8e01.js",
-      "static/chunks/938-d59c40ac607119c1.js",
-      "static/chunks/main-app-9ae388bfc279a94a.js",
-      "static/chunks/554-194fd588e6b6853f.js",
-      "static/chunks/app/invoices/page-713df3c8888d88c6.js"
-    ],
-    "/reports/page": [
-      "static/chunks/webpack-911021f1e06ba075.js",
-      "static/chunks/fd9d1056-a95c00c251bf8e01.js",
-      "static/chunks/938-d59c40ac607119c1.js",
-      "static/chunks/main-app-9ae388bfc279a94a.js",
-      "static/chunks/554-194fd588e6b6853f.js",
-      "static/chunks/app/reports/page-0688bf5bc8467bf0.js"
-    ],
     "/accounts/page": [
       "static/chunks/webpack-911021f1e06ba075.js",
       "static/chunks/fd9d1056-a95c00c251bf8e01.js",
@@ -39,13 +23,13 @@
       "static/chunks/554-194fd588e6b6853f.js",
       "static/chunks/app/accounts/page-37ef246eb675f2ce.js"
     ],
-    "/page": [
+    "/invoices/page": [
       "static/chunks/webpack-911021f1e06ba075.js",
       "static/chunks/fd9d1056-a95c00c251bf8e01.js",
       "static/chunks/938-d59c40ac607119c1.js",
       "static/chunks/main-app-9ae388bfc279a94a.js",
-      "static/chunks/245-87aee7397144c548.js",
-      "static/chunks/app/page-a5690a0726603174.js"
+      "static/chunks/554-194fd588e6b6853f.js",
+      "static/chunks/app/invoices/page-713df3c8888d88c6.js"
     ],
     "/tax/page": [
       "static/chunks/webpack-911021f1e06ba075.js",
@@ -55,6 +39,14 @@
       "static/chunks/554-194fd588e6b6853f.js",
       "static/chunks/app/tax/page-fc746254004ca51f.js"
     ],
+    "/reports/page": [
+      "static/chunks/webpack-911021f1e06ba075.js",
+      "static/chunks/fd9d1056-a95c00c251bf8e01.js",
+      "static/chunks/938-d59c40ac607119c1.js",
+      "static/chunks/main-app-9ae388bfc279a94a.js",
+      "static/chunks/554-194fd588e6b6853f.js",
+      "static/chunks/app/reports/page-0688bf5bc8467bf0.js"
+    ],
     "/mcp-apps/page": [
       "static/chunks/webpack-911021f1e06ba075.js",
       "static/chunks/fd9d1056-a95c00c251bf8e01.js",
@@ -62,6 +54,14 @@
       "static/chunks/main-app-9ae388bfc279a94a.js",
       "static/chunks/554-194fd588e6b6853f.js",
       "static/chunks/app/mcp-apps/page-e4b6d3a91bfc677b.js"
+    ],
+    "/page": [
+      "static/chunks/webpack-911021f1e06ba075.js",
+      "static/chunks/fd9d1056-a95c00c251bf8e01.js",
+      "static/chunks/938-d59c40ac607119c1.js",
+      "static/chunks/main-app-9ae388bfc279a94a.js",
+      "static/chunks/245-87aee7397144c548.js",
+      "static/chunks/app/page-a5690a0726603174.js"
     ],
     "/vouchers/page": [
       "static/chunks/webpack-911021f1e06ba075.js",
